@@ -1,0 +1,2 @@
+Due to a bug that kept causing an error about the loading of the ros2_controllers.yaml file: https://github.com/ros-controls/gz_ros2_control/issues/512,
+I copied the file at the level of src folder, and hardcoded the new path at the gazebo.xacro file.
