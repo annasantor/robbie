@@ -1,0 +1,26 @@
+moveit_controller_manager: moveit_simple_controller_manager/MoveItSimpleControllerManager
+
+moveit_simple_controller_manager:
+  controller_names:
+    - arm_controller
+    - gripper_controller
+  ros_control_namespace: ""  # Try empty first, then "/gazebo" if needed
+
+  arm_controller:
+    type: FollowJointTrajectory
+    action_ns: follow_joint_trajectory
+    default: true
+    joints:
+      - shoulder_roll      # Keep the order from URDF
+      - shoulder_pitch
+      - elbow_roll
+      - elbow_pitch
+      - wrist_roll         # This rotates around X in URDF
+      - wrist_pitch
+  gripper_controller:
+    type: FollowJointTrajectory
+    action_ns: follow_joint_trajectory
+    default: true
+    joints:
+      - fingers
+      - thumb

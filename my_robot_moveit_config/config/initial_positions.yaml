@@ -1,0 +1,11 @@
+# Default initial positions for robbie's ros2_control fake system
+
+initial_positions:
+  shoulder_roll: 0.0
+  shoulder_pitch: 0.5    # slight bend to avoid collision
+  elbow_roll: 0.0
+  elbow_pitch: 0.5       # slight bend
+  wrist_roll: 0.0
+  wrist_pitch: 0.0
+  fingers: 0.0
+  thumb: 0.0

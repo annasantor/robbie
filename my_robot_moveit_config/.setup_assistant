@@ -1,0 +1,23 @@
+moveit_setup_assistant_config:
+  urdf:
+    package: my_robot_description
+    relative_path: urdf/robbie.urdf
+  srdf:
+    relative_path: config/robbie.srdf
+  package_settings:
+    author_name: santor6
+    author_email: aisantor@ece.auth.gr
+    generated_timestamp: 1778180338
+  control_xacro:
+    command:
+      - position
+    state:
+      - position
+  modified_urdf:
+    xacros:
+      - control_xacro
+  control_xacro:
+    command:
+      - position
+    state:
+      - position

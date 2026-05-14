@@ -1,0 +1,447 @@
+<?xml version="1.0"?>
+<robot name="robbie">
+    <material name="blue">
+      <color rgba="0 0 0.8 1"/>
+    </material>
+    <material name="black">
+      <color rgba="0 0 0 1"/>
+    </material>
+    <material name="white">
+      <color rgba="1 1 1 1"/>
+    </material>    
+    <material name="grey">
+      <color rgba ="0 0 0 0.5"/>
+    </material>
+    <material name="yellow">
+      <color rgba ="1 1 0 0.5"/> 
+    </material>    
+
+    <link name="world"/>
+
+    <link name="base_link">
+      <visual>
+        <origin xyz="0 0 0" rpy="0 0 0"/>
+        <geometry>
+          <box size="0.07 0.20 0.405"/>
+        </geometry>
+        <material name="grey"/>
+      </visual>
+      <visual>
+        <origin xyz="0 0.07 0.2025" rpy="0 0 0"/>
+        <geometry>
+          <box size="0.05 0.1 0.01"/>
+        </geometry>
+        <material name="grey"/>
+      </visual>
+      <collision>
+        <geometry>
+          <box size="0.07 0.20 0.405"/>
+        </geometry>
+      </collision>
+      <collision>
+        <geometry>
+          <box size="0.10 0.05 0.01"/>
+        </geometry>
+      </collision>
+      <inertial>
+        <mass value="0.001"/>
+        <inertia ixx="0.001" ixy="0" ixz="0" iyy="0.001" iyz="0" izz="0.001"/>
+      </inertial>
+    </link>
+    <joint name="world_to_base" type="fixed">
+      <parent link="world"/>
+      <child link="base_link"/>
+      <origin xyz="0 0 0" rpy="0 0 0"/>
+    </joint> 
+
+    <link name="link_0">
+      <visual>
+        <origin xyz="0 0 0" rpy="0 0 0"/>
+        <geometry>
+          <cylinder radius="0.0375" length="0.036"/>
+        </geometry>
+        <material name="black"/>
+      </visual>
+      <visual>
+        <origin xyz="0 0.0 0.043" rpy="0 0 0"/>
+        <geometry>
+          <box size="0.115 0.075 0.085"/>
+        </geometry>
+        <material name="grey"/>
+      </visual>      
+      <collision>
+        <geometry>
+          <cylinder radius="0.0375" length="0.036"/>
+        </geometry>
+      </collision>
+      <collision>
+        <geometry>
+          <box size="0.115 0.075 0.055"/>
+        </geometry>    
+      </collision>
+      <inertial>
+        <mass value="1"/>
+        <inertia ixx="0.00064294375" ixy="0" ixz="0" iyy="0.00083294375" iyz="0" izz="0.0009634374999999999"/>
+      </inertial>
+    </link>       
+
+    <joint name="shoulder_roll" type="revolute">
+      <parent link="base_link"/>
+      <child link="link_0"/>
+      <origin xyz="0 0.09 0.22" rpy="0 0 0"/>
+      <axis xyz="0 0 1"/>  <!-- Rotate around z-axis at this point -->
+      <limit lower="-1.570795" upper="1.570795" velocity="26" effort="3.0"/>
+      <dynamics damping="0.5" friction="0.1"/>
+    </joint>
+ 
+    <link name="link_1">
+      <visual>
+        <origin xyz="0 0 0" rpy="0 0 0"/>
+        <geometry>
+          <cylinder radius="0.02" length="0.03"/>
+        </geometry>
+        <material name="grey"/>
+      </visual>
+      <visual>
+        <origin xyz="0 +0.006 +0.0675" rpy="0 0 1.5806"/>
+        <geometry>
+          <box size="0.08 0.023 0.105"/>
+        </geometry>
+        <material name="grey"/>
+      </visual>      
+      <collision>
+        <geometry>
+          <cylinder radius="0.02" length="0.03"/>
+        </geometry>
+      </collision>       
+      <collision>
+        <geometry>
+          <box size="0.08 0.023 0.105"/>
+        </geometry>
+      </collision> 
+      <inertial>
+        <mass value="0.6"/>
+        <inertia ixx="0.0001837" ixy="0" ixz="0" iyy="0.0001452" iyz="0" izz=" 0.0002452"/>
+      </inertial>                 
+    </link>  
+     
+    <joint name="shoulder_pitch" type="revolute">
+      <parent link="link_0"/>
+      <child link="link_1"/>
+      <origin xyz="0.03 0.0725 0.083" rpy="0 -1.5806 0"/>
+      <axis xyz="0 0 1"/>  <!-- Rotate around z-axis at this point -->
+      <limit lower="-1.570795" upper="1.570795" velocity="26" effort="3.0"/>
+      <dynamics damping="0.5" friction="0.1"/>  <!-- ← add this -->
+    </joint>
+   
+    <link name="link_2">
+      <visual>
+        <origin xyz="0 0 0.08" rpy="0 0 0"/>
+        <geometry>
+          <cylinder radius="0.0375" length="0.036"/>
+        </geometry>
+        <material name="black"/>
+      </visual>      
+      <visual>
+        <origin xyz="0 0 0" rpy="0 0 0"/>
+        <geometry>
+          <box size="0.08 0.045 0.135"/>
+        </geometry>
+        <material name="grey"/>
+      </visual>
+      <collision>
+        <geometry>
+          <cylinder radius="0.0375" length="0.036"/>
+        </geometry>
+      </collision>       
+      <collision>
+        <geometry>
+          <box size="0.08 0.045 0.135"/>
+        </geometry>
+      </collision> 
+      <inertial>
+        <mass value="0.8"/>
+        <inertia ixx="0.00082794375" ixy="0" ixz="0" iyy="0.00093731875" iyz="0" izz="0.0007028125"/>
+      </inertial>                 
+    </link>  
+    
+    <joint name="elbow_roll" type="revolute">
+      <parent link="link_1"/>
+      <child link="link_2"/>
+      <origin xyz="-0.08 0.01 0.05" rpy="0 1.5806 0"/>
+      <axis xyz="0 0 1"/>  <!-- Rotate around z-axis at this point -->
+      <limit lower="-1.570795" upper="1.570795" velocity="60" effort="2.0"/>
+      <dynamics damping="0.5" friction="0.1"/>  <!-- ← add this -->
+    </joint>   
+  
+    <link name="link_3">
+      <visual>
+        <origin xyz="0 0 0.05" rpy="0 0 0"/>
+        <geometry>
+          <cylinder radius="0.0157" length="0.022"/>
+        </geometry>
+        <material name="grey"/>
+      </visual>    
+      <visual>
+        <origin xyz="0 0 0" rpy="0 0 0"/>
+        <geometry>
+          <cylinder radius="0.025" length="0.077"/>
+        </geometry>
+        <material name="white"/>
+      </visual>
+      <visual>
+        <origin xyz="-0.03 0 0" rpy="0 0 0"/>
+        <geometry>
+          <box size="0.04 0.05 0.055"/>
+        </geometry>
+        <material name="grey"/>
+      </visual>
+      <collision>
+        <geometry>
+          <box size="0.04 0.05 0.055"/>
+        </geometry>
+      </collision>
+      <inertial>
+        <mass value="0.9"/>
+        <inertia ixx="0.0116" ixy="0" ixz="0" iyy="0.00103" iyz="0" izz="0.0108"/>
+      </inertial>                 
+    </link>
+
+
+    <joint name="elbow_pitch" type="revolute">
+      <parent link="link_2"/>
+      <child link="link_3"/>
+      <origin xyz="0 0 -0.05" rpy="0 -1.5806 0"/>
+      <axis xyz="0 0 1"/>  <!-- Rotate around z-axis at this point -->
+      <limit lower="-1.570795" upper="1.570795" velocity="60" effort="2.0"/>
+      <dynamics damping="0.5" friction="0.1"/>  <!-- ← add this -->
+    </joint>
+    <link name="elbow_pitch_visual">
+      <visual>
+        <origin xyz="0 0 0" rpy="0 0 0"/>
+        <geometry>
+          <cylinder radius="0.025" length="0.077"/>
+        </geometry>
+        <material name="white"/>
+      </visual>
+      <visual>
+        <origin xyz="0 0 0.05" rpy="0 0 0"/>
+        <geometry>
+          <cylinder radius="0.0157" length="0.022"/>
+        </geometry>
+        <material name="grey"/>
+      </visual>      
+      <collision>
+        <geometry>
+          <cylinder radius="0.025" length="0.077"/>
+        </geometry>
+      </collision>
+      <collision>
+        <geometry>
+          <cylinder radius="0.0157" length="0.022"/>
+        </geometry>
+      </collision> 
+      <inertial>
+        <mass value="0.6"/>
+        <inertia ixx="0.000325" ixy="0" ixz="0" iyy="0.0005414500000000001" iyz="0" izz="0.00037644999999999996"/>
+      </inertial>                 
+    </link>
+
+    <joint name="elbow_pitch_visual_joint" type="revolute">
+      <parent link="link_2"/>
+      <child link="elbow_pitch_visual"/>
+      <origin xyz="0 0 0" rpy="0 -1.5806 0"/>
+      <axis xyz="0 0 1"/>
+      <mimic joint="elbow_pitch" multiplier="1" offset="0"/>
+      <limit lower="-1.570795" upper="1.570795" velocity="60" effort="2.0"/>
+      <dynamics damping="0.5" friction="0.1"/>  <!-- ← add this -->
+    </joint>  
+
+    <link name="link_4">
+      <visual>
+        <origin xyz="0 0 0" rpy="0 0 0"/>
+        <geometry>
+          <box size="0.077 0.04 0.07"/>
+        </geometry>
+        <material name="grey"/>
+      </visual>      
+      <collision>
+        <geometry>
+          <box size="0.04 0.077 0.07"/>
+        </geometry>
+      </collision> 
+      <inertial>
+        <mass value="0.6"/>
+        <inertia ixx="0.000325" ixy="0" ixz="0" iyy="0.0005414500000000001" iyz="0" izz="0.00037644999999999996"/>
+      </inertial>                 
+    </link>
+
+    <joint name="wrist_roll" type="revolute">
+      <parent link="link_3"/>
+      <child link="link_4"/>
+      <origin xyz="-0.08 0 0" rpy="0 0 0"/>
+      <axis xyz="1 0 0"/>  <!-- Rotate around z-axis at this point -->
+      <limit lower="-1.570795" upper="1.570795" velocity="26" effort="3.0"/>
+      <dynamics damping="0.5" friction="0.1"/>  <!-- ← add this -->
+    </joint>
+     
+    <link name="link_5">
+      <visual>
+        <origin xyz="0 0 0" rpy="0 0 0"/>
+        <geometry>
+          <cylinder radius="0.025" length="0.1"/>
+        </geometry>
+        <material name="grey"/>
+      </visual>
+      <visual>
+        <origin xyz="-0.02 0 0" rpy="0 0 -1.5806"/>
+        <geometry>
+          <box size="0.04 0.01 0.1"/>
+        </geometry>
+        <material name="grey"/>
+      </visual>           
+      <collision>
+        <geometry>
+          <cylinder radius="0.025" length="0.1"/>
+        </geometry>
+      </collision>
+      <collision>
+        <geometry>
+          <box size="0.04 0.01 0.1"/>
+        </geometry>
+      </collision> 
+      <inertial>
+        <mass value="0.7"/>
+        <inertia ixx="0.0012" ixy="0" ixz="0" iyy="0.0012" iyz="0" izz="0.0003"/>
+      </inertial>                 
+    </link>
+    
+    <joint name="wrist_pitch" type="revolute">
+      <parent link="link_4"/>
+      <child link="link_5"/>
+      <origin xyz="-0.03 0 0" rpy="0 0 0"/>
+      <axis xyz="0 0 1"/>  <!-- Rotate around z-axis at this point -->
+      <limit lower="-1.570795" upper="1.570795" velocity="26" effort="3.0"/>
+      <dynamics damping="0.5" friction="0.1"/>  <!-- ← add this -->
+    </joint>
+
+    <link name="link_6">
+      <visual>
+        <origin xyz="-0.02 0.001 0" rpy="0 0 0"/>
+        <geometry>
+          <box size="0.06 0.01 0.06"/>
+        </geometry>
+        <material name="grey"/>
+      </visual>
+      <collision>
+        <geometry>
+          <box size="0.06 0.01 0.06"/>
+        </geometry>
+      </collision> 
+      <inertial>
+        <mass value="0.6"/>
+        <inertia ixx="0.000325" ixy="0" ixz="0" iyy="0.0005414500000000001" iyz="0" izz="0.00037644999999999996"/>
+      </inertial>                 
+    </link>
+
+    <joint name="palm" type="fixed">
+      <parent link="link_5"/>
+      <child link="link_6"/>
+      <origin xyz="-0.03 0 0" rpy="0 0 0"/>
+      <dynamics damping="0.5" friction="0.1"/>  <!-- ← add this -->
+    </joint>
+
+    <link name="link_7">
+      <visual>
+        <origin xyz="0 0 0.03" rpy="0 1.5806 0"/>
+        <geometry>
+          <box size="0.06 0.01 0.008"/>
+        </geometry>
+        <material name="yellow"/>
+      </visual>
+      <visual>
+        <origin xyz="-0.014 0 0.03" rpy="0 1.5806 0"/>
+        <geometry>
+          <box size="0.06 0.01 0.008"/>
+        </geometry>
+        <material name="yellow"/>
+      </visual>
+      <visual>
+        <origin xyz="-0.028 0 0.03" rpy="0 1.5806 0"/>
+        <geometry>
+          <box size="0.06 0.01 0.008"/>
+        </geometry>
+        <material name="yellow"/>
+      </visual>
+      <visual>
+        <origin xyz="-0.042 0 0.03" rpy="0 1.5806 0"/>
+        <geometry>
+          <box size="0.06 0.01 0.008"/>
+        </geometry>
+        <material name="yellow"/>
+      </visual>
+      <collision>
+        <geometry>
+          <box size="0.06 0.01 0.008"/>
+        </geometry>
+      </collision>
+      <collision>
+        <geometry>
+          <box size="0.06 0.01 0.008"/>
+        </geometry>
+      </collision>
+      <collision>
+        <geometry>
+          <box size="0.06 0.01 0.008"/>
+        </geometry>
+      </collision>
+      <collision>
+        <geometry>
+          <box size="0.06 0.01 0.008"/>
+        </geometry>
+      </collision>
+      <inertial>
+        <mass value="0.6"/>
+        <inertia ixx="0.000325" ixy="0" ixz="0" iyy="0.0005414500000000001" iyz="0" izz="0.00037644999999999996"/>
+      </inertial>                 
+    </link>
+
+    <joint name="fingers" type="revolute">
+      <parent link="link_6"/>
+      <child link="link_7"/>
+      <origin xyz="-0.05 0 -0.02" rpy="3.141593 1.5806 0"/>
+      <axis xyz="1 0 0"/>  <!-- Rotate around z-axis at this point -->
+      <limit lower="0" upper="1.570796" velocity="26" effort="3.0"/>
+      <dynamics damping="0.5" friction="0.1"/>  <!-- ← add this -->
+    </joint>
+
+    <link name="link_8">
+      <visual>
+        <origin xyz="0.02 0 0" rpy="0 0 0"/>
+        <geometry>
+          <box size="0.06 0.01 0.008"/>
+        </geometry>
+        <material name="yellow"/>
+      </visual> 
+      <collision>
+        <geometry>
+          <box size="0.06 0.01 0.008"/>
+        </geometry>
+      </collision> 
+      <inertial>
+        <mass value="0.6"/>
+        <inertia ixx="0.000325" ixy="0" ixz="0" iyy="0.0005414500000000001" iyz="0" izz="0.00037644999999999996"/>
+      </inertial>                 
+    </link>
+
+    <joint name="thumb" type="revolute">
+      <parent link="link_6"/>
+      <child link="link_8"/>
+      <origin xyz="-0.01 0 -0.025" rpy="0 1.570796 0"/>
+      <axis xyz="0 0 1"/>  <!-- Rotate around z-axis at this point -->
+      <limit lower="-1.570796" upper="1.570796" velocity="26" effort="3.0"/>
+      <dynamics damping="0.5" friction="0.1"/>  <!-- ← add this -->
+    </joint>
+
+
+</robot>
