@@ -9,44 +9,36 @@
     <joint name="shoulder_roll">
       <command_interface name="position"/>
       <state_interface name="position"/>
-      <state_interface name="velocity"/>
     </joint>
     <joint name="shoulder_pitch">
       <command_interface name="position"/>
       <state_interface name="position"/>
-      <state_interface name="velocity"/>
     </joint>
     <joint name="elbow_roll">
       <command_interface name="position"/>
       <state_interface name="position"/>
-      <state_interface name="velocity"/>
     </joint>
     <joint name="elbow_pitch">
       <command_interface name="position"/>
       <state_interface name="position"/>
-      <state_interface name="velocity"/>
     </joint>
     <joint name="wrist_roll">
       <command_interface name="position"/>
       <state_interface name="position"/>
-      <state_interface name="velocity"/>
     </joint>
     <joint name="wrist_pitch">
       <command_interface name="position"/>
       <state_interface name="position"/>
-      <state_interface name="velocity"/>
     </joint>
 
     <!-- Gripper joints -->
     <joint name="fingers">
       <command_interface name="position"/>
       <state_interface name="position"/>
-      <state_interface name="velocity"/>
     </joint>
     <joint name="thumb">
       <command_interface name="position"/>
       <state_interface name="position"/>
-      <state_interface name="velocity"/>
     </joint>
 
   </ros2_control>

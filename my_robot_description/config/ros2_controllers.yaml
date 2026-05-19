@@ -1,6 +1,6 @@
 controller_manager:
   ros__parameters:
-    update_rate: 100
+    update_rate: 10
     joint_state_broadcaster:
       type: "joint_state_broadcaster/JointStateBroadcaster"
     arm_controller:
@@ -21,7 +21,6 @@ arm_controller:
       - "position"
     state_interfaces:
       - "position"
-      - "velocity"
     constraints:
       stopped_velocity_tolerance: 0.01
       goal_time: 0.0
@@ -35,7 +34,6 @@ gripper_controller:
       - "position"
     state_interfaces:
       - "position"
-      - "velocity"
     constraints:
       stopped_velocity_tolerance: 0.01
       goal_time: 0.0

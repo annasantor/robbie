@@ -28,9 +28,7 @@ def generate_launch_description():
 
     pkg_desc = get_package_share_directory('my_robot_description')
 
-    controller_manager_file = os.path.join(pkg_desc, 'config', 'controller_manager.yaml')
-    arm_controller_file = os.path.join(pkg_desc, 'config', 'arm_controller.yaml')
-    gripper_controller_file = os.path.join(pkg_desc, 'config', 'gripper_controller.yaml')
+    controller_file = os.path.join(pkg_desc, 'config', 'ros2_controllers.yaml')
 
 
     # ── MoveIt config ─────────────────────────────────────────────────────────
@@ -40,9 +38,7 @@ def generate_launch_description():
             file_path="config/robbie.urdf.xacro",
             mappings={
                 'initial_positions_file': initial_positions_file,
-                'controller_manager_file': controller_manager_file,
-                'arm_controller_file': arm_controller_file,
-                'gripper_controller_file': gripper_controller_file,
+                'controller_file': controller_file,
             }
         )
         .robot_description_semantic(file_path="config/robbie.srdf")
