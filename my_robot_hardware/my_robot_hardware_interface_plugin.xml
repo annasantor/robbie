@@ -1,0 +1,10 @@
+<library path="arm_hardware_interface">
+  <class
+    name="my_robot_controller/ArmHardwareInterface"
+    type="my_robot_controller::ArmHardwareInterface"
+    base_class_type="hardware_interface::SystemInterface">
+    <description>
+      Hardware interface for a 6-DOF robotic arm controlled via Arduino over USB serial.
+    </description>
+  </class>
+</library>
