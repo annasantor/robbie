@@ -1,0 +1,74 @@
+controller_manager:
+  ros__parameters:
+    update_rate: 10
+    joint_state_broadcaster:
+      type: "joint_state_broadcaster/JointStateBroadcaster"
+    # Renamed from arm_controller — CBF node sits in front of this
+    arm_controller_safe:
+      type: "joint_trajectory_controller/JointTrajectoryController"
+    gripper_controller:
+      type: "joint_trajectory_controller/JointTrajectoryController"
+
+# Renamed from arm_controller
+arm_controller_safe:
+  ros__parameters:
+    joints:
+      - "shoulder_roll"
+      - "shoulder_pitch"
+      - "elbow_roll"
+      - "elbow_pitch"
+      - "wrist_roll"
+      - "wrist_pitch"
+    command_interfaces:
+      - "position"
+    state_interfaces:
+      - "position"
+    constraints:
+      stopped_velocity_tolerance: 0.01
+      goal_time: 0.0
+
+gripper_controller:
+  ros__parameters:
+    joints:
+      - "fingers"
+      - "thumb"
+    command_interfaces:
+      - "position"
+    state_interfaces:
+      - "position"
+    constraints:
+      stopped_velocity_tolerance: 0.01
+      goal_time: 0.0
+
+# ── CBF Node parameters ───────────────────────────────────────────────────────
+cbf_node:
+  ros__parameters:
+
+    joint_names:
+      - shoulder_roll
+      - shoulder_pitch
+      - elbow_roll
+      - elbow_pitch
+      - wrist_roll
+      - wrist_pitch
+
+    control_rate: 10.0
+
+    pid:
+      Kp: 1.0
+      Ki: 0.0
+      Kd: 0.1
+      dt: 0.1
+      windup_limit: 1.0
+
+    # Obstacle 1: TV — static sphere
+    tv:
+      p_center: [0.4, 0.3, 0.3]   # TUNE to real TV position
+      r_safe: 0.15
+      gamma: 1.0
+
+    # Obstacle 2: Human — static sphere
+    human:
+      p_center: [0.0, 0.5, 0.5]   # TUNE to real human position
+      r_safe: 0.3
+      gamma: 1.5
