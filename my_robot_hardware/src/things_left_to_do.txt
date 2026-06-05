@@ -1,0 +1,24 @@
+- Calibrate the zero positions of each motor, and update the following:
+
+const std::unordered_map<std::string, double> ArmHardwareInterface::JOINT_ZERO_POSITIONS = {
+    {"wrist_roll",    140.0},
+    {"wrist_pitch",   230.0},
+    {"elbow_roll",    145.0},
+    {"elbow_pitch",   100.0},
+    {"shoulder_roll", 130.0},
+    {"shoulder_pitch",110.0},
+    {"fingers",       160.0},  
+    {"thumb",          30.0}, 
+};
+
+const std::unordered_map<std::string, double> JOINT_RANGES_RAD = {
+    {"shoulder_roll",  M_PI},      // -90° to +90° = π rad total
+    {"shoulder_pitch", M_PI},
+    {"elbow_roll",     M_PI},
+    {"elbow_pitch",    M_PI},
+    {"wrist_roll",     M_PI},
+    {"wrist_pitch",    M_PI},
+
+
+
+- Check and validate the current mapping of conversion of raw ADC (0-255) data to radians (lines of code: 406-420)

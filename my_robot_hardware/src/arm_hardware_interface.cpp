@@ -20,7 +20,7 @@
 namespace my_robot_controller
 {
 
-// Static member definition
+
 const std::unordered_map<std::string, double> ArmHardwareInterface::JOINT_ZERO_POSITIONS = {
     {"wrist_roll",    140.0},
     {"wrist_pitch",   230.0},
@@ -31,7 +31,7 @@ const std::unordered_map<std::string, double> ArmHardwareInterface::JOINT_ZERO_P
     {"fingers",       160.0},  // add
     {"thumb",          30.0},  // add
 };
-// These are examples — adjust to match your actual joint limits from URDF
+//The following have to match the limits of the joints from urdf. This has to be validated in the future for more precise results from moveit trajectories
 const std::unordered_map<std::string, double> JOINT_RANGES_RAD = {
     {"shoulder_roll",  M_PI},      // -90° to +90° = π rad total
     {"shoulder_pitch", M_PI},
