@@ -1,8 +1,9 @@
 <?xml version="1.0"?>
 <robot xmlns:xacro="http://www.ros.org/wiki/xacro" name="robbie">
+  <xacro:arg name="initial_positions_file" default="initial_positions.yaml"/>
+  <xacro:arg name="use_real_hardware" default="false"/>
   <xacro:arg name="controller_file" default=""/>
-  <xacro:arg name="initial_positions_file" default=""/>
   <xacro:include filename="$(find my_robot_description)/urdf/robbie.urdf"/>
-  <xacro:include filename="$(find my_robot_description)/urdf/gazebo.xacro"/>
   <xacro:include filename="$(find my_robot_description)/urdf/ros2_control.xacro"/>
+  <xacro:include filename="$(find my_robot_description)/urdf/gazebo.xacro"/>
 </robot>

@@ -12,8 +12,8 @@ BarrierFunction instance. The CBF filter enforces all
 constraints simultaneously via a multi-constraint QP.
 
 Current obstacles:
-    1. TV    — static, defined in yaml
-    2. Human — static sphere, defined in yaml
+    1. TV    - static, defined in yaml
+    2. Human - static sphere, defined in yaml
                (dynamic tracking identified as future work)
 """
 

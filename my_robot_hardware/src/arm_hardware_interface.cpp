@@ -1,3 +1,4 @@
+#include <sys/ioctl.h>
 #include "my_robot_hardware/arm_hardware_interface.hpp"
 #include <hardware_interface/types/hardware_interface_type_values.hpp>
 #include <pluginlib/class_list_macros.hpp>
@@ -7,10 +8,13 @@
 #include <unistd.h>
 #include <algorithm>
 #include <cmath>
+#ifndef M_PI
+#define M_PI 3.14159265358979323846
+#endif
 #include <string>
 #include <sstream>
-#include <thread>        // FIX 2: for std::this_thread::sleep_for
-#include <chrono>        // FIX 2: for std::chrono::milliseconds
+#include <thread>        
+#include <chrono>        
 #include "rclcpp/rclcpp.hpp"
 
 namespace my_robot_controller
@@ -26,6 +30,19 @@ const std::unordered_map<std::string, double> ArmHardwareInterface::JOINT_ZERO_P
     {"shoulder_pitch",110.0},
     {"fingers",       160.0},  // add
     {"thumb",          30.0},  // add
+};
+// These are examples — adjust to match your actual joint limits from URDF
+const std::unordered_map<std::string, double> JOINT_RANGES_RAD = {
+    {"shoulder_roll",  M_PI},      // -90° to +90° = π rad total
+    {"shoulder_pitch", M_PI},
+    {"elbow_roll",     M_PI},
+    {"elbow_pitch",    M_PI},
+    {"wrist_roll",     M_PI},
+    {"wrist_pitch",    M_PI},
+};
+const std::vector<std::string> ArmHardwareInterface::ARDUINO_ORDER = {
+    "wrist_roll", "wrist_pitch", "elbow_roll",
+    "elbow_pitch", "shoulder_roll", "shoulder_pitch"
 };
 
 
@@ -90,12 +107,6 @@ CallbackReturn ArmHardwareInterface::on_init(const hardware_interface::HardwareC
         position_states_.push_back(0.0);
         position_commands_.push_back(0.0);
     }
-
-    // -- Arduino <-> internal index maps --
-    const std::vector<std::string> ARDUINO_ORDER = {
-        "wrist_roll", "wrist_pitch", "elbow_roll",
-        "elbow_pitch", "shoulder_roll", "shoulder_pitch"
-    };
 
     arduino_to_internal_.resize(6, -1);
     internal_to_arduino_.resize(joint_names_.size(), -1);
@@ -195,10 +206,19 @@ CallbackReturn ArmHardwareInterface::on_activate(
         // FIX 2: Wait for Arduino to finish booting after serial open
         // (opening the port triggers a DTR reset on most Arduinos)
         RCLCPP_INFO(rclcpp::get_logger("ArmHardwareInterface"),
+            "Cycling DTR to reset usbipd RX pipe...");
+
+        int flags;
+        ioctl(serial_fd_, TIOCMGET, &flags);
+        flags &= ~TIOCM_DTR;                                            // DTR low
+        ioctl(serial_fd_, TIOCMSET, &flags);
+        std::this_thread::sleep_for(std::chrono::milliseconds(100));
+        flags |= TIOCM_DTR;                                             // DTR high
+        ioctl(serial_fd_, TIOCMSET, &flags);
+
+        RCLCPP_INFO(rclcpp::get_logger("ArmHardwareInterface"),
             "Waiting 2s for Arduino to boot...");
         std::this_thread::sleep_for(std::chrono::milliseconds(2000));
-
-        // Flush any bootloader noise that arrived during boot
         tcflush(serial_fd_, TCIOFLUSH);
     }
 
@@ -222,16 +242,17 @@ CallbackReturn ArmHardwareInterface::on_activate(
 CallbackReturn ArmHardwareInterface::on_deactivate(
     const rclcpp_lifecycle::State & /*previous_state*/)
 {
-    send_home();
-
     if (serial_fd_ != -1) {
+        send_home();
+        tcdrain(serial_fd_);
         close(serial_fd_);
         serial_fd_ = -1;
+        RCLCPP_INFO(rclcpp::get_logger("ArmHardwareInterface"),
+            "Deactivated — serial port closed");
+    } else {
+        RCLCPP_INFO(rclcpp::get_logger("ArmHardwareInterface"),
+            "Deactivated — dry run mode (no serial)");
     }
-
-    RCLCPP_INFO(rclcpp::get_logger("ArmHardwareInterface"),
-        "Deactivated — serial port closed");
-
     return CallbackReturn::SUCCESS;
 }
 
@@ -239,25 +260,22 @@ CallbackReturn ArmHardwareInterface::on_deactivate(
 
 void ArmHardwareInterface::send_home()
 {
+    if (serial_fd_ == -1) return;
     std::ostringstream cmd;
     cmd << "c1,d";
-
-    const std::vector<std::string> ARDUINO_ORDER = {
-        "wrist_roll", "wrist_pitch", "elbow_roll",
-        "elbow_pitch", "shoulder_roll", "shoulder_pitch"
-    };
     for (const auto & name : ARDUINO_ORDER)
         cmd << "," << static_cast<int>(JOINT_ZERO_POSITIONS.at(name));
-
     cmd << "," << FINGERS_ZERO;
     cmd << "," << THUMB_ZERO;
     cmd << "\r";
-
     std::string s = cmd.str();
-    if (serial_fd_ != -1)
-        ::write(serial_fd_, s.c_str(), s.size());
-
-    RCLCPP_INFO(rclcpp::get_logger("ArmHardwareInterface"), "Sent home: %s", s.c_str());
+    ssize_t written = ::write(serial_fd_, s.c_str(), s.size());
+    if (written < 0)
+        RCLCPP_ERROR(rclcpp::get_logger("ArmHardwareInterface"),
+            "send_home write failed: %s", strerror(errno));
+    else
+        RCLCPP_INFO(rclcpp::get_logger("ArmHardwareInterface"),
+            "Sent home: %s", s.c_str());
 }
 
 // write 
@@ -299,8 +317,8 @@ hardware_interface::return_type ArmHardwareInterface::write(
         last_arduino_values_[i] = arduino_values[i];
     }
 
-    // -- Format command string --
-    std::ostringstream cmd;
+    std::ostringstream cmd;    // ← add this line
+    // Both send_home() and write():
     cmd << "c1,d";
     for (int i = 0; i < 8; i++)
         cmd << "," << arduino_values[i];
@@ -326,9 +344,8 @@ hardware_interface::return_type ArmHardwareInterface::read(
     const rclcpp::Duration & /*period*/)
 {
     if (serial_fd_ == -1)
-        return hardware_interface::return_type::OK;  // dry run / no serial
+        return hardware_interface::return_type::OK;
 
-    // FIX 3: Guard against unbounded buffer growth
     if (read_buffer_.size() > 1024) {
         RCLCPP_WARN(rclcpp::get_logger("ArmHardwareInterface"),
             "read_buffer_ overflow (%zu bytes), clearing", read_buffer_.size());
@@ -338,13 +355,16 @@ hardware_interface::return_type ArmHardwareInterface::read(
     // -- Read available bytes into buffer --
     char tmp[256];
     ssize_t n = ::read(serial_fd_, tmp, sizeof(tmp));
-    if (n > 0)
+    if (n > 0) {
         read_buffer_.append(tmp, n);
+        RCLCPP_INFO(rclcpp::get_logger("ArmHardwareInterface"),
+            "Read %zd bytes, buffer: '%s'", n, read_buffer_.c_str());
+    }
 
     // -- Check for a complete line --
     size_t newline_pos = read_buffer_.find('\n');
     if (newline_pos == std::string::npos)
-        return hardware_interface::return_type::OK;  // incomplete, wait
+        return hardware_interface::return_type::OK;
 
     // -- Extract line, keep remainder --
     std::string line = read_buffer_.substr(0, newline_pos);
@@ -362,11 +382,10 @@ hardware_interface::return_type ArmHardwareInterface::read(
     }
 
     // -- Parse 6 values --
-    std::istringstream ss(line.substr(1));  // strip leading 'f'
+    std::istringstream ss(line.substr(1));
     std::string token;
     std::vector<int> raw_values;
     raw_values.reserve(6);
-
     while (std::getline(ss, token, ',')) {
         try {
             raw_values.push_back(std::stoi(token));
@@ -384,23 +403,24 @@ hardware_interface::return_type ArmHardwareInterface::read(
     }
 
     // -- Convert raw ADC (0-255) to radians and store --
-    // FIX 4: Log raw vs computed values so pot calibration can be verified
     for (int arduino_idx = 0; arduino_idx < 6; arduino_idx++) {
         int internal_idx = arduino_to_internal_[arduino_idx];
         double zero = zero_positions_[internal_idx];
-        double rad  = (raw_values[arduino_idx] - zero) * M_PI / 180.0;
+        double deg = (raw_values[arduino_idx] / 255.0) * 180.0;  // scale to degrees
+        double rad = (raw_values[arduino_idx] - zero) / 255.0 * joint_range_rad_[internal_idx];
         position_states_[internal_idx] = rad;
-
-        RCLCPP_DEBUG(rclcpp::get_logger("ArmHardwareInterface"),
-            "Joint %s: raw=%d  zero=%.0f  → %.1f deg  (%.4f rad)",
-            joint_names_[internal_idx].c_str(),
+        position_states_[internal_idx] = rad;
+        RCLCPP_INFO(rclcpp::get_logger("ArmHardwareInterface"),
+            "Joint %s: raw=%d  zero=%.0f  → %.4f rad (%.1f deg)",
+            joint_names_[internal_idx].c_str(),   // fixed: internal_idx not i
             raw_values[arduino_idx],
             zero,
-            rad * 180.0 / M_PI,
-            rad);
+            rad,
+            rad * 180.0 / M_PI);
     }
 
     return hardware_interface::return_type::OK;
+   
 }
 
 }  // namespace my_robot_controller

@@ -13,7 +13,7 @@ def generate_launch_description():
     controller_file = os.path.join(pkg_desc, 'config', 'ros2_controllers.yaml')
     urdf_path = os.path.join(pkg_desc, 'urdf', 'robbie.urdf.xacro')
 
-    # Symlink approach — same as working Gazebo launch
+    # Symlink approach same as working Gazebo launch
     # ln -s ~/ros2_ws/src/my_robot_description/config/ros2_controllers.yaml \
     #       ~/ros2_controllers.yaml
     controllers_yaml = os.path.expanduser('~/ros2_controllers.yaml')
@@ -49,6 +49,7 @@ def generate_launch_description():
             ],
         ),
 
+        # 1. joint_state_broadcaster
         TimerAction(
             period=15.0,
             actions=[
@@ -64,6 +65,8 @@ def generate_launch_description():
             ]
         ),
 
+        # 2. arm_controller_safe (renamed from arm_controller)
+        #    CBF node sits in front of this
         TimerAction(
             period=25.0,
             actions=[
@@ -71,7 +74,7 @@ def generate_launch_description():
                     package='controller_manager',
                     executable='spawner',
                     arguments=[
-                        'arm_controller',
+                        'arm_controller_safe',
                         '--controller-manager', '/controller_manager',
                     ],
                     output='screen',
@@ -79,6 +82,7 @@ def generate_launch_description():
             ]
         ),
 
+        # 3. gripper_controller (unchanged)
         TimerAction(
             period=35.0,
             actions=[
@@ -90,6 +94,22 @@ def generate_launch_description():
                         '--controller-manager', '/controller_manager',
                     ],
                     output='screen',
+                ),
+            ]
+        ),
+
+        # 4. CBF node - starts after arm_controller_safe is up
+        TimerAction(
+            period=37.0,
+            actions=[
+                Node(
+                    package='my_robot_controller',
+                    executable='cbf_node',
+                    output='screen',
+                    parameters=[
+                        {'robot_description': robot_description},
+                        controllers_yaml,
+                    ],
                 ),
             ]
         ),

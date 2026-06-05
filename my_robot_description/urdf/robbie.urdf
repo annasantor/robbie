@@ -22,12 +22,12 @@
       <visual>
         <origin xyz="0 0 0" rpy="0 0 0"/>
         <geometry>
-          <box size="0.07 0.20 0.405"/>
+          <box size="0.2 0.20 0.41"/>
         </geometry>
         <material name="grey"/>
       </visual>
       <visual>
-        <origin xyz="0 0.07 0.2025" rpy="0 0 0"/>
+        <origin xyz="0 0.07 0.21" rpy="0 0 0"/>
         <geometry>
           <box size="0.05 0.1 0.01"/>
         </geometry>
@@ -88,7 +88,7 @@
     <joint name="shoulder_roll" type="revolute">
       <parent link="base_link"/>
       <child link="link_0"/>
-      <origin xyz="0 0.09 0.22" rpy="0 0 0"/>
+      <origin xyz="0 0.09 0.233" rpy="0 0 0"/>
       <axis xyz="0 0 1"/>  <!-- Rotate around z-axis at this point -->
       <limit lower="-1.570795" upper="1.570795" velocity="26" effort="3.0"/>
       <dynamics damping="0.5" friction="0.1"/>

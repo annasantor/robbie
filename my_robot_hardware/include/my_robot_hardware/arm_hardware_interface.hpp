@@ -11,8 +11,8 @@
 #include <unordered_map>
 #include <termios.h>
 #include <array>
-#include <thread>    // FIX 2: std::this_thread::sleep_for
-#include <chrono>    // FIX 2: std::chrono::milliseconds
+#include <thread>    
+#include <chrono>  
 
 namespace my_robot_controller
 {
@@ -47,6 +47,8 @@ private:
     // Joint metadata (populated at on_init from info_.joints)
     std::vector<std::string> joint_names_;
     std::vector<double> zero_positions_;        // Arduino home units, matched to joint_names_ order
+    std::vector<double> joint_range_rad_;
+
 
     // Arduino <-> internal index mappings (computed once at on_init)
     std::vector<int> arduino_to_internal_;      // arduino slot i  -> internal index
@@ -67,6 +69,7 @@ private:
     std::string read_buffer_;
 
     // Static name -> Arduino zero position lookup (defined in .cpp)
+    static const std::vector<std::string> ARDUINO_ORDER;
     static const std::unordered_map<std::string, double> JOINT_ZERO_POSITIONS;
 
     static constexpr int FINGERS_ZERO = 160;

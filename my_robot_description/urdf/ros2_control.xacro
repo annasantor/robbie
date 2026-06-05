@@ -1,33 +1,43 @@
 <?xml version="1.0"?>
 <robot xmlns:xacro="http://www.ros.org/wiki/xacro">
-  <ros2_control name="GazeboSystem" type="system">
+
+  <ros2_control name="ArmHardware" type="system">
     <hardware>
-        <plugin>gz_ros2_control/GazeboSimSystem</plugin>
+      <plugin>my_robot_controller/ArmHardwareInterface</plugin>
+      <param name="serial_port">/dev/ttyACM0</param>
+      <param name="baud_rate">9600</param>
+      <param name="use_serial">true</param>
     </hardware>
 
     <!-- Arm joints -->
     <joint name="shoulder_roll">
       <command_interface name="position"/>
+        <param name="initial_value">0.0</param>
       <state_interface name="position"/>
     </joint>
     <joint name="shoulder_pitch">
       <command_interface name="position"/>
+        <param name="initial_value">0.5</param>
       <state_interface name="position"/>
     </joint>
     <joint name="elbow_roll">
       <command_interface name="position"/>
+        <param name="initial_value">0.0</param>
       <state_interface name="position"/>
     </joint>
     <joint name="elbow_pitch">
       <command_interface name="position"/>
+        <param name="initial_value">0.5</param>
       <state_interface name="position"/>
     </joint>
     <joint name="wrist_roll">
       <command_interface name="position"/>
+        <param name="initial_value">0.0</param>
       <state_interface name="position"/>
     </joint>
     <joint name="wrist_pitch">
       <command_interface name="position"/>
+        <param name="initial_value">0.0</param>
       <state_interface name="position"/>
     </joint>
 

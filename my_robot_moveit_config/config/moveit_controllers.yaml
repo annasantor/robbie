@@ -2,11 +2,11 @@ moveit_controller_manager: moveit_simple_controller_manager/MoveItSimpleControll
 
 moveit_simple_controller_manager:
   controller_names:
-    - arm_controller
+    - arm_controller_safe
     - gripper_controller
   ros_control_namespace: ""  # Try empty first, then "/gazebo" if needed
 
-  arm_controller:
+  arm_controller_safe:
     type: FollowJointTrajectory
     action_ns: follow_joint_trajectory
     default: true

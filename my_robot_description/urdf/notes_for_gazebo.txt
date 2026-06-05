@@ -1,0 +1,18 @@
+*/ To test on real hardware (while you have connected the arduino of the robotic manipulator to your computer) leave the ros2_control xacro file as it is now.
+If you want to have a simulation on gazebo, change this part:
+
+  <ros2_control name="ArmHardware" type="system">
+    <hardware>
+      <plugin>my_robot_controller/ArmHardwareInterface</plugin>
+      <param name="serial_port">/dev/ttyACM0</param>
+      <param name="baud_rate">9600</param>
+      <param name="use_serial">true</param>
+    </hardware>
+
+
+To this :
+
+  <ros2_control name="GazeboSystem" type="system">
+    <hardware>
+        <plugin>gz_ros2_control/GazeboSimSystem</plugin>
+    </hardware>

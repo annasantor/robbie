@@ -1,6 +1,5 @@
 from launch import LaunchDescription
-from launch.actions import IncludeLaunchDescription, TimerAction
-from launch.launch_description_sources import PythonLaunchDescriptionSource
+from launch.actions import TimerAction
 from launch_ros.actions import Node
 from ament_index_python.packages import get_package_share_directory
 from moveit_configs_utils import MoveItConfigsBuilder
@@ -16,8 +15,6 @@ def load_yaml(package_name, file_path):
 
 
 def generate_launch_description():
-    pkg_ros_gz_sim = get_package_share_directory('ros_gz_sim')
-    sim_time = {'use_sim_time': True}
 
     initial_positions_file = os.path.join(
         get_package_share_directory('my_robot_moveit_config'),
@@ -25,9 +22,8 @@ def generate_launch_description():
     )
 
     pkg_desc = get_package_share_directory('my_robot_description')
-    controller_file = os.path.join(pkg_desc, 'config', 'ros2_controllers.yaml')
+    controller_file = os.path.expanduser('~/ros2_controllers.yaml')
 
-    # MoveIt config — simulation (use_real_hardware=false)
     moveit_config = (
         MoveItConfigsBuilder("robbie", package_name="my_robot_moveit_config")
         .robot_description(
@@ -35,7 +31,7 @@ def generate_launch_description():
             mappings={
                 'initial_positions_file': initial_positions_file,
                 'controller_file': controller_file,
-                'use_real_hardware': 'false',
+                'use_real_hardware': 'true',    # ← key difference
             }
         )
         .robot_description_semantic(file_path="config/robbie.srdf")
@@ -45,82 +41,56 @@ def generate_launch_description():
         .to_moveit_configs()
     )
 
-    controllers_yaml = load_yaml(
-        'my_robot_moveit_config', 'config/moveit_controllers.yaml')
+    controllers_yaml = load_yaml('my_robot_moveit_config', 'config/moveit_controllers.yaml')
 
-    # 1. Gazebo
-    gazebo = IncludeLaunchDescription(
-        PythonLaunchDescriptionSource(
-            os.path.join(pkg_ros_gz_sim, 'launch', 'gz_sim.launch.py')
-        ),
-        launch_arguments={'gz_args': '-r empty.sdf'}.items()
-    )
-
-    # 2. Robot State Publisher
+    # 1. Robot State Publisher — no sim time
     robot_state_publisher = Node(
         package='robot_state_publisher',
         executable='robot_state_publisher',
         parameters=[{
             'robot_description': moveit_config.robot_description['robot_description'],
-            'use_sim_time': True,
+            'use_sim_time': False,
             'publish_frequency': 100.0,
         }],
         output='screen'
     )
 
-    # 3. Spawn robot in Gazebo
-    spawn_robot = Node(
-        package='ros_gz_sim',
-        executable='create',
-        arguments=['-topic', 'robot_description', '-name', 'robbie'],
-        output='screen'
-    )
-
-    # 4. ros_gz_bridge — clock only
-    bridge = Node(
-        package='ros_gz_bridge',
-        executable='parameter_bridge',
-        arguments=[
-            '/clock@rosgraph_msgs/msg/Clock[gz.msgs.Clock',
+    # 2. ros2_control node — loads your hardware interface plugin
+    ros2_control_node = Node(
+        package='controller_manager',
+        executable='ros2_control_node',
+        parameters=[
+            {'robot_description': moveit_config.robot_description['robot_description']},
+            controller_file,
         ],
         output='screen'
     )
 
-    # 5. Controllers
+    # 3. Controllers
     joint_state_broadcaster_spawner = Node(
         package='controller_manager',
         executable='spawner',
-        arguments=[
-            'joint_state_broadcaster',
-            '--controller-manager', '/controller_manager',
-        ],
+        arguments=['joint_state_broadcaster', '--controller-manager', '/controller_manager'],
         output='screen'
     )
 
-    # arm_controller_safe — CBF node sits in front of this
     arm_controller_spawner = Node(
         package='controller_manager',
         executable='spawner',
-        arguments=[
-            'arm_controller_safe',
-            '--controller-manager', '/controller_manager',
-        ],
+        arguments=['arm_controller_safe', '--controller-manager', '/controller_manager'],
         output='screen'
     )
 
     gripper_controller_spawner = Node(
         package='controller_manager',
         executable='spawner',
-        arguments=[
-            'gripper_controller',
-            '--controller-manager', '/controller_manager',
-        ],
+        arguments=['gripper_controller', '--controller-manager', '/controller_manager'],
         output='screen'
     )
 
-    # 6. Move Group
+    # 4. Move Group
     move_group_node = TimerAction(
-        period=28.0,
+        period=10.0,
         actions=[
             Node(
                 package='moveit_ros_move_group',
@@ -138,46 +108,13 @@ def generate_launch_description():
                     {'moveit_controller_manager': 'moveit_simple_controller_manager/MoveItSimpleControllerManager'},
                     {'publish_robot_description': True},
                     {'publish_robot_description_semantic': True},
-                    {'trajectory_execution.allowed_start_tolerance': 0.1},
-                    sim_time,
+                    {'use_sim_time': False},
                 ]
             )
         ]
     )
 
-    # 7. CBF node — after move_group is up
-    cbf_node = TimerAction(
-        period=32.0,
-        actions=[
-            Node(
-                package='my_robot_controller',
-                executable='cbf_node',
-                output='screen',
-                parameters=[
-                    moveit_config.robot_description,
-                    {'use_sim_time': True},
-                    os.path.join(pkg_desc, 'config', 'ros2_controllers.yaml'),
-                ],
-            ),
-        ]
-    )
-
-    # 8. Collision objects — TV and human spheres added to planning scene
-    collision_objects = TimerAction(
-        period=34.0,
-        actions=[
-            Node(
-                package='my_robot_controller',
-                executable='collision_objects_node',
-                output='screen',
-                parameters=[
-                    {'use_sim_time': True},
-                ],
-            ),
-        ]
-    )
-
-    # 9. RViz
+    # 5. RViz
     rviz_node = Node(
         package='rviz2',
         executable='rviz2',
@@ -187,20 +124,16 @@ def generate_launch_description():
             moveit_config.robot_description,
             moveit_config.robot_description_semantic,
             moveit_config.robot_description_kinematics,
-            sim_time,
+            {'use_sim_time': False},
         ]
     )
 
     return LaunchDescription([
-        gazebo,
         robot_state_publisher,
-        spawn_robot,
-        bridge,
-        TimerAction(period=5.0,  actions=[joint_state_broadcaster_spawner]),
-        TimerAction(period=7.0,  actions=[arm_controller_spawner]),
-        TimerAction(period=9.0,  actions=[gripper_controller_spawner]),
-        move_group_node,      # period=28s
-        cbf_node,             # period=32s
-        collision_objects,    # period=34s
+        ros2_control_node,
+        TimerAction(period=3.0,  actions=[joint_state_broadcaster_spawner]),
+        TimerAction(period=5.0,  actions=[arm_controller_spawner]),
+        TimerAction(period=7.0,  actions=[gripper_controller_spawner]),
+        move_group_node,
         rviz_node,
     ])
